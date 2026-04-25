@@ -1,0 +1,85 @@
+# TrueVoice — out-of-distribution test set
+# Format: label,url   (label = real | fake | bonafide | spoof | deepfake)
+# Lines starting with `#` are ignored. Run: python evaluate_urls.py --ablate
+#
+# ============================================================================
+# Where to find REAL clips (genuine human voice)
+# ============================================================================
+# - Wikimedia Commons (https://commons.wikimedia.org/wiki/Category:Audio_files)
+#     Recordings of speeches, interviews, lectures. Permanent URLs.
+# - LibriVox (https://librivox.org/) — public-domain audiobooks. Clean studio.
+# - Internet Archive (https://archive.org/details/audio) — speeches, NPR, BBC.
+# - Mozilla Common Voice (https://commonvoice.mozilla.org/) — crowdsourced.
+# - YouTube podcast clips: pick interviews / single-speaker monologues.
+#     Avoid intros with music; trim to a 30–60s segment if possible.
+#
+# Suggested REAL targets to grab (paste actual URLs in below):
+# - 30s clip from Lex Fridman / Joe Rogan / Tim Ferriss podcast
+# - 30s news anchor clip (BBC, Reuters)
+# - 30s historical speech (MLK, JFK from archive.org)
+#
+# ============================================================================
+# Where to find FAKE / synthetic clips
+# ============================================================================
+# - ElevenLabs voice library (https://elevenlabs.io/voice-library) — has demos.
+# - HuggingFace TTS Spaces:
+#     https://huggingface.co/spaces — search "TTS" and grab generated audio.
+# - Play.ht, Murf, Resemble — most have public demo clips.
+# - YouTube channels that publish AI-voiced content (search "AI voice cover").
+# - The ASVspoof2019 evaluation samples (academic).
+# - LJSpeech-derived TTS samples.
+# - Vall-E and Tortoise-TTS demo pages have downloadable wavs.
+#
+# Suggested FAKE targets:
+# - 30s of any ElevenLabs / OpenAI TTS demo
+# - 30s of a known AI-voice YouTube channel
+# - A known audio deepfake (search "audio deepfake examples site:youtube.com")
+#
+# ============================================================================
+# Add your own rows below. Aim for 8–12 of each class for a meaningful number.
+# ============================================================================
+
+# ============================================================================
+# Verified URLs — appended automatically. Filter audiobooks (>5 min) yourself
+# if your ingestion duration cap is still set low.
+# ============================================================================
+
+# REAL — Famous historical speeches on archive.org (public domain, stable)
+real,https://archive.org/download/MLKDream/MLKDream_64kb.mp3
+real,https://archive.org/download/Greatest_Speeches_of_the_20th_Century/InauguralAddress-1933.mp3
+real,https://archive.org/download/Greatest_Speeches_of_the_20th_Century/DeclarationofWarAgainstJapan.mp3
+real,https://archive.org/download/Greatest_Speeches_of_the_20th_Century/TheMoonLanding.mp3
+real,https://archive.org/download/Greatest_Speeches_of_the_20th_Century/FarewellAddress.mp3
+real,https://archive.org/download/Greatest_Speeches_of_the_20th_Century/CheckersSpeech.mp3
+real,https://archive.org/download/Greatest_Speeches_of_the_20th_Century/FirstRadioAddressasPrimeMinister.mp3
+
+# REAL — Wikimedia Commons direct uploads (public domain, stable host)
+real,https://upload.wikimedia.org/wikipedia/commons/d/d5/JFK_inaugural_address.ogg
+real,https://upload.wikimedia.org/wikipedia/commons/7/73/Reagan_Brandenburg_Gate_speech.ogg
+real,https://upload.wikimedia.org/wikipedia/commons/e/e6/Nixon_resignation_audio_with_buzz_removed.ogg
+real,https://upload.wikimedia.org/wikipedia/commons/7/75/Winston_Churchill_-_Be_Ye_Men_of_Valour.ogg
+real,https://upload.wikimedia.org/wikipedia/commons/5/51/Elizabeth_II_Coronation_speech.ogg
+real,https://upload.wikimedia.org/wikipedia/commons/4/42/King_George_VI%27s_VE_Day_speech.ogg
+
+# REAL — Single-speaker TED talks on YouTube (12–21 min — bump duration cap)
+real,https://www.youtube.com/watch?v=8jPQjjsBbIc
+real,https://www.youtube.com/watch?v=iCvmsMzlF7o
+real,https://www.youtube.com/watch?v=arj7oStGLkU
+real,https://www.youtube.com/watch?v=Hu4Yvq-g7_Y
+real,https://www.youtube.com/watch?v=5MgBikgcWnY
+
+# FAKE — Edge TTS Bible chapters on archive.org (single AI voice, ~1.5–3 min)
+fake,https://archive.org/download/ASV-a2-50-philippians/ASV_bo50_ch001_A2.mp3
+fake,https://archive.org/download/ASV-a2-50-philippians/ASV_bo50_ch002_A2.mp3
+fake,https://archive.org/download/ASV-a2-37-haggai/ASV_bo37_ch002_A2.mp3
+fake,https://archive.org/download/ASV-a2-47-ii-corinthians/ASV_bo47_ch001_A2.mp3
+fake,https://archive.org/download/ASV-a1-51-colossians/ASV_bo51_ch001_A1.mp3
+fake,https://archive.org/download/ASV-a1-54-i-timothy/ASV_bo54_ch001_A1.mp3
+
+# FAKE — AI voice generator demo on archive.org (~43s)
+fake,https://archive.org/download/best-real-life-voice-ai-generators-2025-ultra-realistic-voices-for-every-need/Best%20Real%20Life%20Voice%20AI%20Generators%202025%20%E2%80%93%20Ultra-Realistic%20Voices%20for%20Every%20Need.mp3
+
+# FAKE — Tacotron 2 demo wavs (Google research, ~5s each, unambiguously synthetic)
+fake,https://google.github.io/tacotron/publications/tacotron2/demos/bluelagoon.wav
+fake,https://google.github.io/tacotron/publications/tacotron2/demos/tajima.wav
+fake,https://google.github.io/tacotron/publications/tacotron2/demos/basilar.wav

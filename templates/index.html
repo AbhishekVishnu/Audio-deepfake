@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrueVoice / Forensic Audio Bureau</title>
+  <link rel="icon" href="{{ url_for('static', filename='img/favicon.png') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&display=swap">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+  <svg class="grain" aria-hidden="true">
+    <filter id="noise">
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.06 0"/>
+    </filter>
+    <rect width="100%" height="100%" filter="url(#noise)"/>
+  </svg>
+
+  <!-- ============== MASTHEAD ============== -->
+  <header class="masthead">
+    <div class="masthead-inner">
+      <a href="/" class="logomark">
+        <span class="lm-glyph">◇</span>
+        <span class="lm-name">TrueVoice</span>
+      </a>
+      <div class="masthead-rule" aria-hidden="true"></div>
+      <div class="masthead-meta">
+        <span class="ml-tag">Vol.01</span>
+        <span class="ml-sep">/</span>
+        <span class="ml-tag">Issue №04</span>
+        <span class="ml-sep">/</span>
+        <span class="ml-tag" id="utcClock">— — : — — : — —</span>
+        <span class="ml-sep">/</span>
+        <button class="ml-link" id="toggleHistoryBtn">Archive ↗</button>
+      </div>
+    </div>
+    <div class="masthead-strap">
+      <span>Forensic Audio Bureau</span>
+      <span class="strap-dot">·</span>
+      <span>Wav2Vec2 Voiceprint Verification</span>
+      <span class="strap-dot">·</span>
+      <span>Off-record</span>
+    </div>
+  </header>
+
+  <main class="paper">
+    <!-- ============== HERO / EDITORIAL ============== -->
+    <section class="hero">
+      <div class="kicker">§ 01 — Editorial</div>
+      <h1 class="display">
+        Tell a human voice<br>
+        <em>from a machine&apos;s impersonation.</em>
+      </h1>
+      <p class="standfirst">
+        TrueVoice is a forensic listening console. Drop in a recording, paste a link, or speak into the microphone. The bureau analyses it with a self-supervised Wav2Vec2 detector, returning a verdict, a confidence score, a per-chunk timeline of suspicion, a mel-spectrogram of what the model heard, and a robustness panel that puts the verdict to the test.
+      </p>
+      <div class="byline">
+        <span>By the Bureau</span>
+        <span class="byline-sep">—</span>
+        <span id="todayDate">—</span>
+      </div>
+    </section>
+
+    <!-- ============== INTAKE / TABS ============== -->
+    <section class="dossier">
+      <header class="dossier-head">
+        <div class="kicker">§ 02 — Intake</div>
+        <div class="rec-indicator" id="recIndicator">
+          <span class="rec-dot"></span><span class="rec-label">Idle</span>
+        </div>
+      </header>
+
+      <nav class="ledger" role="tablist">
+        <button class="tab active" data-tab="upload" role="tab"><span class="tab-num">01</span> Track</button>
+        <button class="tab" data-tab="record" role="tab"><span class="tab-num">02</span> Session</button>
+        <button class="tab" data-tab="url" role="tab"><span class="tab-num">03</span> Link</button>
+        <button class="tab" data-tab="compare" role="tab"><span class="tab-num">04</span> A &#x2215; B</button>
+      </nav>
+
+      <!-- UPLOAD -->
+      <div class="tab-panel active" data-panel="upload">
+        <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Upload audio">
+          <input type="file" id="fileInput" accept=".wav,.mp3,.flac,.m4a,.ogg,.webm" hidden>
+          <div class="crosshair tl"></div>
+          <div class="crosshair tr"></div>
+          <div class="crosshair bl"></div>
+          <div class="crosshair br"></div>
+          <div class="dz-inner">
+            <div class="dz-eyebrow">— Drop target —</div>
+            <div class="dz-title"><em>Place</em> a recording here.</div>
+            <div class="dz-sub">.wav · .mp3 · .flac · .m4a · .ogg · .webm — ≤ 50 mb</div>
+          </div>
+        </div>
+
+        <div class="player" id="player" hidden>
+          <div class="player-row">
+            <button class="play-btn" id="playBtn" aria-label="Play">
+              <svg class="play-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              <svg class="pause-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" hidden><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+            </button>
+            <div id="waveform" class="waveform"></div>
+            <div class="meta">
+              <div class="filename" id="fileName">—</div>
+              <div class="filesize" id="fileSize">—</div>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn ghost" id="resetBtn">Discard</button>
+            <button class="btn primary" id="analyzeBtn">Submit for analysis →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RECORD -->
+      <div class="tab-panel" data-panel="record">
+        <div class="record-zone">
+          <button class="record-btn" id="recBtn" aria-label="Record">
+            <span class="rb-ring"></span>
+            <span class="rb-core"></span>
+          </button>
+          <div class="rec-status" id="recStatus">— Press to begin a live session —</div>
+          <div class="rec-time" id="recTime">00:00.000</div>
+          <div id="recPlayerWrap" hidden>
+            <div class="player-row">
+              <button class="play-btn" id="recPlayBtn" aria-label="Play">
+                <svg class="play-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                <svg class="pause-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" hidden><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+              </button>
+              <div id="recWaveform" class="waveform"></div>
+            </div>
+            <div class="actions">
+              <button class="btn ghost" id="recResetBtn">Discard</button>
+              <button class="btn primary" id="recAnalyzeBtn">Submit recording →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- URL -->
+      <div class="tab-panel" data-panel="url">
+        <div class="url-zone">
+          <div class="kicker tiny">— Remote source —</div>
+          <div class="url-row">
+            <span class="url-prefix">https://</span>
+            <input type="url" class="url-input" id="urlInput" placeholder="www.youtube.com/watch?v=…">
+            <button class="btn primary" id="urlBtn">Fetch &amp; analyse →</button>
+          </div>
+          <div class="hint">Capped at five minutes. Server-side decoding via yt-dlp + ffmpeg.</div>
+        </div>
+      </div>
+
+      <!-- COMPARE -->
+      <div class="tab-panel" data-panel="compare">
+        <div class="compare-grid">
+          <div class="compare-side">
+            <div class="dz-tag">Specimen A</div>
+            <div class="dropzone small" tabindex="0" data-side="a">
+              <div class="crosshair tl"></div><div class="crosshair tr"></div>
+              <div class="crosshair bl"></div><div class="crosshair br"></div>
+              <div class="dz-inner">
+                <div class="dz-eyebrow">Drop or click</div>
+                <div class="dz-sub" data-side-name="a">— No file selected —</div>
+              </div>
+              <input type="file" class="cmp-input" data-side="a" accept=".wav,.mp3,.flac,.m4a,.ogg,.webm" hidden>
+            </div>
+          </div>
+          <div class="compare-side">
+            <div class="dz-tag">Specimen B</div>
+            <div class="dropzone small" tabindex="0" data-side="b">
+              <div class="crosshair tl"></div><div class="crosshair tr"></div>
+              <div class="crosshair bl"></div><div class="crosshair br"></div>
+              <div class="dz-inner">
+                <div class="dz-eyebrow">Drop or click</div>
+                <div class="dz-sub" data-side-name="b">— No file selected —</div>
+              </div>
+              <input type="file" class="cmp-input" data-side="b" accept=".wav,.mp3,.flac,.m4a,.ogg,.webm" hidden>
+            </div>
+          </div>
+        </div>
+        <div class="compare-actions">
+          <button class="btn primary" id="compareBtn" disabled>Run side-by-side →</button>
+        </div>
+        <div class="compare-result" id="compareResult" hidden></div>
+      </div>
+    </section>
+
+    <!-- STATUS -->
+    <div class="status" id="status" hidden>
+      <span class="status-bar"></span>
+      <div class="spinner" aria-hidden="true"></div>
+      <div class="status-text" id="statusText">Loading the bureau&apos;s instruments…</div>
+    </div>
+
+    <!-- ============== VERDICT / DOSSIER ============== -->
+    <section class="result-card" id="result" hidden>
+      <header class="dossier-head">
+        <div class="kicker">§ 03 — Verdict</div>
+        <div class="dossier-id" id="modelBadge">—</div>
+      </header>
+
+      <div class="result-stage">
+        <div class="verdict-block">
+          <div class="verdict" id="verdict">REAL</div>
+          <div class="verdict-sub" id="verdictSub">Likely a genuine human voice.</div>
+        </div>
+        <div class="gauge">
+          <svg viewBox="0 0 120 120" class="gauge-svg" aria-hidden="true">
+            <circle cx="60" cy="60" r="50" class="gauge-track"/>
+            <circle cx="60" cy="60" r="50" class="gauge-bar" id="gaugeBar"/>
+            <g class="gauge-ticks">
+              <line x1="60" y1="6"  x2="60" y2="12"/>
+              <line x1="60" y1="108" x2="60" y2="114"/>
+              <line x1="6"  y1="60" x2="12" y2="60"/>
+              <line x1="108" y1="60" x2="114" y2="60"/>
+            </g>
+          </svg>
+          <div class="gauge-num" id="gaugeNum">0%</div>
+          <div class="gauge-label">Confidence</div>
+        </div>
+      </div>
+
+      <!-- Spec-sheet datapoints -->
+      <div class="data-sheet">
+        <div class="ds-row">
+          <span class="ds-key">Real probability</span>
+          <span class="ds-val" id="barRealVal">0%</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill bar-real" id="barReal"></div></div>
+        <div class="ds-row">
+          <span class="ds-key">Fake probability</span>
+          <span class="ds-val" id="barFakeVal">0%</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill bar-fake" id="barFake"></div></div>
+      </div>
+
+      <!-- Timeline -->
+      <article class="viz-block">
+        <header class="viz-head">
+          <div class="kicker">§ 04 — Timeline</div>
+          <h3>Per-chunk fake probability</h3>
+          <span class="viz-aside" id="chunksMeta">—</span>
+        </header>
+        <div class="timeline-wrap">
+          <canvas id="timelineCanvas" height="180"></canvas>
+        </div>
+      </article>
+
+      <!-- Spectrogram -->
+      <article class="viz-block">
+        <header class="viz-head">
+          <div class="kicker">§ 05 — Spectrogram</div>
+          <h3>What the bureau heard</h3>
+          <span class="viz-aside">128 mels · n_fft 2048 · hop 512 · 16 kHz</span>
+        </header>
+        <div class="spec-wrap">
+          <img id="specImg" alt="mel-spectrogram">
+          <div id="specOverlay" class="spec-overlay"></div>
+          <div class="spec-scan" aria-hidden="true"></div>
+          <div class="spec-grid" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+        <div class="legend">
+          <span class="dot-real"></span><span>low fake</span>
+          <span class="legend-sep"></span>
+          <span class="dot-fake"></span><span>high fake</span>
+          <span class="legend-aside">— overlay marks per-chunk verdict</span>
+        </div>
+      </article>
+
+      <!-- Robustness -->
+      <article class="viz-block">
+        <header class="viz-head">
+          <div class="kicker">§ 06 — Robustness</div>
+          <h3>Adversarial perturbation tests</h3>
+          <span class="viz-aside">single-click; result is the delta from baseline</span>
+        </header>
+        <div class="aug-row" id="augRow">
+          <button class="aug-btn" data-kind="noise">+ Noise <span class="aug-detail">(SNR 10 dB)</span></button>
+          <button class="aug-btn" data-kind="lowband">Telephone band <span class="aug-detail">(8 kHz)</span></button>
+          <button class="aug-btn" data-kind="pitch">Pitch shift <span class="aug-detail">(+2 st)</span></button>
+          <button class="aug-btn" data-kind="reverb">Reverb <span class="aug-detail">(synthetic)</span></button>
+          <button class="aug-btn" data-kind="speed">Speed <span class="aug-detail">(×1.1)</span></button>
+        </div>
+        <div class="aug-results" id="augResults"></div>
+      </article>
+
+      <!-- Feedback / retrain queue -->
+      <article class="viz-block feedback-block">
+        <header class="viz-head">
+          <div class="kicker">§ 07 — Feedback</div>
+          <h3>Disagree with the verdict?</h3>
+          <span class="viz-aside" id="feedbackStats">queue: — real · — fake</span>
+        </header>
+        <div class="feedback-row">
+          <p class="feedback-prose">Flag this clip with its <em>true</em> label. The audio is appended to the retraining queue under <code>feedback/</code>. Run <code>python train.py --resume</code> to fine-tune the offline model on accumulated feedback.</p>
+          <div class="feedback-actions">
+            <button class="btn ghost flag-btn" data-claim="real" id="flagRealBtn">Flag as REAL</button>
+            <button class="btn ghost flag-btn" data-claim="fake" id="flagFakeBtn">Flag as FAKE</button>
+          </div>
+          <div class="feedback-status" id="feedbackStatus" hidden></div>
+        </div>
+      </article>
+
+      <footer class="result-foot">
+        <div class="export-row">
+          <button class="btn ghost" id="exportJsonBtn">↓ json</button>
+          <button class="btn ghost" id="exportCsvBtn">↓ csv</button>
+        </div>
+        <button class="btn primary" id="againBtn">New dossier →</button>
+      </footer>
+    </section>
+
+    <!-- ============== METHOD ============== -->
+    <section class="method" id="how">
+      <div class="kicker">§ 07 — Method</div>
+      <h2 class="display small"><em>How</em> the bureau decides.</h2>
+      <ol class="method-list">
+        <li>
+          <span class="ml-num">i.</span>
+          <h3>Self-supervised features</h3>
+          <p>A pretrained Wav2Vec2 transformer encodes the raw waveform. No hand-crafted MFCCs. The encoder has heard millions of hours of human speech and is sensitive to the small inconsistencies that synthesis leaves behind.</p>
+        </li>
+        <li>
+          <span class="ml-num">ii.</span>
+          <h3>Chunked &amp; ensembled</h3>
+          <p>Audio is split into overlapping five-second windows. Each window is scored independently; per-chunk probabilities are averaged for a stable verdict, optionally across multiple models.</p>
+        </li>
+        <li>
+          <span class="ml-num">iii.</span>
+          <h3>Explained &amp; tested</h3>
+          <p>You see exactly where the model is suspicious, what its mel-spectrogram looks like, and how the verdict moves under noise, codec compression, pitch and reverb — the everyday corruptions that a real-world clip will face.</p>
+        </li>
+      </ol>
+    </section>
+  </main>
+
+  <!-- ARCHIVE DRAWER -->
+  <aside class="history-drawer" id="historyDrawer" hidden>
+    <div class="history-head">
+      <div class="kicker">— Archive —</div>
+      <button class="ml-link" id="closeHistoryBtn">Close ✕</button>
+    </div>
+    <div class="history-list" id="historyList">
+      <div class="hint">— Loading —</div>
+    </div>
+  </aside>
+
+  <!-- ============== FOOTER TERMINAL ============== -->
+  <footer class="terminal">
+    <span class="t-block">::: Bureau Nominal</span>
+    <span class="t-block">UTC <span id="utcClock2">— — : — — : — —</span></span>
+    <span class="t-block">© <span id="yr"></span> TrueVoice</span>
+    <span class="t-block">Build 0.4.0</span>
+    <span class="t-block t-flex">For research &amp; educational use only.</span>
+  </footer>
+
+  <script src="https://unpkg.com/wavesurfer.js@7"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

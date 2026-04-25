@@ -1,0 +1,13 @@
+flask>=3.0
+transformers>=4.40
+torch>=2.2
+torchaudio>=2.2
+tensorflow>=2.15           # for the locally-trained Keras fusion model in the ensemble
+librosa>=0.10
+soundfile>=0.12
+numpy>=1.24
+scipy>=1.11
+audioread>=3.0
+yt-dlp>=2024.4.9
+pillow>=10.0
+scikit-learn>=1.3          # for evaluation metrics

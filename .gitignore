@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Runtime / generated
+uploads/
+eval_cache/
+static/spec_cache/
+history.db
+temp.wav
+*.log
+PRESENTATION_GUIDE.html
+
+# Training data (huge; obtain separately or via release)
+dataset/
+output/
+feedback/
+
+# Build artefacts
+build/
+dist/
+*.bak
